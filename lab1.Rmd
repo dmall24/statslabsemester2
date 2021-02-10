@@ -1,0 +1,156 @@
+---
+title: "lab1"
+author: "Derek Maldonado"
+date: "2/4/2021"
+bibliography: BCStats.bib
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## QALMRI
+
+for the paper by @slamecka_retroactive_1960
+
+
+Q
+  - Does learning new things affect the already learned information within one's mind
+  -How does learning through original learning (OL) and interpolated learning (IL) practices affect the retroactive inhibition of read prose literature.
+  
+A
+  - Remembering a learned prose passage is directly correlated by the amount of OL and inversely correlated by the amount of IL
+  - There is no difference in learning between OL and IL
+  
+L
+  - if the hypothesis is correct, there will be more retention with more OL and less retention with more IL
+  - If the hypothesis is incorrect, there will be no difference in retention based on the amount of OL and IL done during the experiment
+  
+M
+  - Variables
+    IV - The number of OL and IL trials done by each subject
+    DV - The subject's total correct anticipations
+  - Subjects
+    36 students in a general psych course in 4 40 minute sessions
+  - material
+    8 20 word sentences, all taken from the same book source
+    sentences grouped into 4 pairs, 3 of them being used in the experiment
+  - procedure
+    each word exposed to subject for 3 seconds
+    first pair used to practice OL and IL learning
+    following pairs used in different ways as part of experiment
+    all learning took total of 60 seconds
+    
+R
+  - Descriptive
+    Statistically significant F values found by way of ANOVA test
+      Within only OL acquisition compared to OL x IL trials (F = 608.67)
+      OL recall and # of IL trials (F = 28.06)
+      OL recall only compared to OL x IL trials (F = 41.85)
+  - Inferential
+    The amount of words learned/retained through OL acquisition decreased with more IL trials, showing an inverse pattern. The amount of words learned/retained through IL acquisition increased with more IL trials 
+    
+I
+  - Inferences
+    with OL learning, there was an increase in retention based on the number of OL trials competed, and an inverse amount of retention based on the number of IL trails done when OL acquisition was used.
+    There was an increase in retention based on the number of IL trials when IL acquisition was used.
+    This allows the experimenter to reject the null hypothesis partially.
+  - Flaws and Limitations
+  The subjects used all came from the same class, therefore this is a small and specific grouping, not one that can be used to classify everyone.
+    Psychology students may have a higher affinity to learning prose sentences compared to those in a more number-based STEM learning group.
+
+## DATAFRAME
+Create a dataframe that capable of representing the design, in as complete a way as you can, in the Slamecka (1960) paper.
+
+
+```{r}
+library(dplyr)
+
+n <- 36
+OL <- 3
+IL <- 3
+OLtrials <- c(2,4,8)
+IL1 <- c(0,4,8)
+IL2 <- c(4,8)
+
+pt2 <- matrix(4, ncol=3, nrow=3)
+colnames(pt2) <- c(OLtrials)
+row.names(pt2) <- c(IL1)
+
+subjects <- 1:36
+OLsub <- rep(c(OLtrials),12)
+ILsub <- rep(c(IL1),12)
+recall <- sample(0:20,36, replace = TRUE)
+
+longwise <- tibble(subjects,
+                   OLsub,
+                   ILsub,
+                   recall)
+
+mixed_design <- tribble(
+  ~Subjects, ~OL, ~IL,
+  1, 2, 0,
+  1, 4, 4,
+  1, 8, 8,
+  2, 4, 0,
+  2, 8, 4,
+  2, 2, 8,
+  3, 8, 0,
+  3, 2, 4,
+  3, 4, 8,
+  4, 2, 4,
+  4, 4, 0,
+  4, 8, 8,
+  5, 4, 4,
+  5, 2, 8,
+  5, 8, 0,
+  6, 8, 4,
+  6, 4, 8,
+  6, 2, 0,
+  7, 2, 8,
+  7, 4, 0,
+  7, 8, 4,
+  8, 4, 8,
+  8, 2, 4,
+  8, 8, 0,
+  9, 8, 8,
+  9, 4, 4,
+  9, 2, 0
+)
+
+
+full_mixed_design <- rbind(mixed_design,
+                           mixed_design,
+                           mixed_design,
+                           mixed_design) %>%
+  mutate(Subjects = rep(1:36, each=3),
+         recall = sample(0:20,36*3, replace=TRUE))
+
+full_mixed_design %>%
+  group_by(OL,IL) %>%
+  summarize(mean_recall = mean(recall), .groups="drop")
+
+
+OL2_mean <- c(18.00,17.42,16.33)
+OL4_mean <- c(40.33,40.17,44.50)
+OL8_mean <- c(105.17,107.17,97.33)
+OL2sd <- c(5.00, 6.38, 5.57)
+OL4sd <- c(12.88, 8.69, 11.30)
+OL8sd <- c(21.16, 22.12, 22.24)
+
+
+widework <- data.frame(IL_trails = IL1,
+                       OL2mean = OL2_mean,
+                       SD = OL2sd,
+                       OL4mean = OL4_mean,
+                       SD = OL4sd,
+                       OL8mean = OL8_mean,
+                       SD = OL8sd)
+
+
+#25% it was a struggle, as advertised. I especially fell apart near the end
+
+```
+
+## References
