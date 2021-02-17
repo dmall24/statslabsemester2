@@ -1,0 +1,101 @@
+---
+title: "lab2"
+author: "Derek Maldonado"
+date: "2/16/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 1
+The following code roughly reproduces figure 5.5 from the textbook (Abdi et al., 2009). Modify the ggplot code so that the graph looks as close as possible to the figure from textbook:
+  change the x-axis title
+  change the y-axis title
+  make the x-axis and y axis ticks the same
+  include different symbols to differentiate the lines
+
+
+
+```{r}
+library(ggplot2)
+library(tibble)
+q1data <- tibble(number_of_learning_trials = rep(c(2,4,8), each=6),
+                          number_of_IL = rep(rep(c(2,4,8), 2), 3),
+                          subjects = 1:18,
+                          recall = c(35,21,6,
+                                   39,31,8,
+                                   40,34,18,
+                                   52,42,26,
+                                   61,58,46,
+                                   73,66,52
+                                   )
+                          )
+
+q1data$number_of_learning_trials <- as.factor(q1data$number_of_learning_trials)
+
+ggplot(q1data,aes(x=number_of_IL,
+                  group = number_of_learning_trials,
+                  y=recall,
+                  shape=number_of_learning_trials))+
+  geom_line(stat="summary", fun="mean")+
+  geom_point(stat="summary", fun="mean")+
+  scale_x_continuous(breaks = c(2,4,8))+
+  scale_y_continuous(breaks = c(0,20,40,60,80), limits = c(0,80))+
+  labs(x = "Number of interpolated lists", y = "Number of words correct")
+
+
+# this is old plot code
+#ggplot(slamecka_design,aes(x=number_of_IL,
+#                           group = number_of_learning_trials,
+#                           y=recall))+
+#  geom_line(stat = "summary", fun = "mean")+
+#  geom_point(stat = "summary", fun = "mean",)+
+#  theme_classic()
+
+#75% on own through googling
+
+```
+
+## Q2
+Imagine Slamecka had included a third independent variable that also had three levels. This new IV is expected to increase memory recall. For example, maybe the third IV is amount of reward given to subjects (0, 50 dollars, 1 million dollars) for completing the study. As the amount of expected reward is increased, subjects are more motivated so they remember more words.
+
+Use R to create a dataframe to represent predictions for this new 3x3x3 design. Then use ggplot and facet wrapping to show predicted means for each condition. As a hint, I have provided a drawing and I expect your ggplot graph will look something like this drawing.
+
+
+```{r}
+q2data <- tibble(rewardmoney = rep(c("A:0", "B:50", "C:1000000"), each =9),
+                  number_of_learning_trials = rep(rep(c(2,4,8),each =3),3),
+                          number_of_IL = as.factor(rep(c(0,4,8),9)),
+                          recall = c(5,3,1,
+                              6,4,2,
+                              7,5,3,
+                              10,8,6,
+                              11,9,7,
+                              12,10,8,
+                              15,13,11,
+                              16,14,12,
+                              17,15,13
+                              )
+                          )
+
+
+
+ggplot(q2data,aes(x=number_of_learning_trials,
+                  group = number_of_IL,
+                  y=recall,
+                  shape = number_of_IL))+
+  geom_line()+
+  geom_point()+
+  facet_wrap(~rewardmoney)+
+  scale_x_continuous(breaks = c(2,4,8))+
+  scale_y_continuous(breaks = c(0,5,10,15,20), limits = c(0,20))+
+  labs(x = "Number of interpolated lists", y = "Number of words correct")+
+  theme_classic()
+
+
+#33% I couldn't get my graph to align because my dataframe was not separating the data properly. didn't know I had to use the word each in the rep function to repeat correctly, thus making me need your guide to figure it out
+```
+
+
