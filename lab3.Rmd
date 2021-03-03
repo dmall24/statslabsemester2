@@ -1,0 +1,73 @@
+---
+title: "lab3"
+author: "Derek Maldonado"
+date: "3/2/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Q1
+The problem for this week is to develop a little bit of content (tutorial material) that could be added to this lab
+(I am ok with this being placed on the course website)
+
+focus is in the area of semi-partial correlation (2 variables (x,t) feeding into a single Y variable)
+
+I will be examining a long wondered idea of what matters more in most valuable player (MVP) voting in Major League Baseball using semi-partial correlation. The two values I will use are wins above replacement (WAR) and overall team record. The argument has always been that a player on a losing team, unless they are magnificent, will have a lower chance of being selected as the MVP.
+
+WAR is defined as a single statistic used to summarize a players total contribution to their team. It consists of the player's batting stats + defensive stats + a statistical comparison of their stats to the league averages / a quantitative number of runs per win in the MLB that season (calculated with this equation: RPW = 9*(MLB Runs Scored / MLB Innings Pitched)*1.5 + 3). It was created by Bill James during his push for a more statistic based approach to evaluating players, and the version used in this experiment is FWAR, created and found at the website Fangraphs. 1 WAR is equal to a good MLB player, 3 WAR equal to an All-Star, 6 WAR equal to a star player, 10 WAR equal to a player having one of the greatest seasons in the history of Major League Baseball.
+
+Team record is the win percentage of the players MLB team that year.
+
+The point accrued from voting are given based on where the player was in a 10-player ballot given to the voting committee. Players receive 14 points for a first place vote, 9 for second, 8 for third, and so on for their place on the 10-player ballot
+
+I will be examining the top 10 players in American League MVP voting from the year 2012 (the year of a controversial MVP result), and their names, ranking, and total number of voting points can be found at https://www.baseball-reference.com/awards/awards_2012.shtml
+
+
+
+```{r}
+library(tibble)
+library(dplyr)
+
+# the players WARs are ordered here as they appear in their MVP voting rank, placed into the variable named WAR
+WAR <- c(7.3,10.1,6.3,7.3,4.9,4.4,3.3,6.8,5,4)
+# the win percentage of the teams the players were on are ordered here as they appear in their MVP voting rank, placed into the variable named record
+record <- c(0.543, 0.549, 0.574, 0.586, 0.574, 0.574, 0.586, 0.543, 0.543, 0.580)
+# the players total voting points are ordered here as they appear in their MVP voting rank, placed into the variable named votingpts
+votingpts <- c(362,281,210,149,127,120,77,58,56,41)
+
+# here we are creating a table for each of the 3 variables, making it easy to see how each player stacks up, ordered by their ranking in the MVP vote for that year
+data <- tibble(x = WAR,
+               t = record,
+               y = votingpts)
+voting <- summary(lm(y~x+t, data=data))
+# the table is visible below. x is WAR, t is win percentage, y is number of voting points earned
+data
+
+#here we are going to examine the effect each individual variable has on the players voting points
+lm.x <- lm(y~x, data = data)
+lm.t <- lm(y~t, data = data)
+
+lm.xt <- lm(x~t, data= data)
+# this value represents the unique r^2 value WAR has on MVP voting
+cor(residuals(lm.xt),data$y)^2
+
+lm.tx <- lm(t~x, data= data)
+# this represents the unique r^2 value win percentage has on MVP voting
+cor(residuals(lm.tx),data$y)^2
+
+#this represents the shared variance between WAR and win percentage
+voting$r.squared - cor(residuals(lm.xt),data$y)^2 - cor(residuals(lm.tx),data$y)^2
+
+
+```
+
+As seen in the data above, the r^2 value for WAR totals 0.36897 while the r^2 value for team record totals only 0.00065. The shared R^2 for these is 0.10726.
+
+This clearly shows a significantly higher correlation between a player's WAR and their chance at becoming the MVP compared to record of the team the player was on. Though as can be seen with this data, neither of these values seems to fully explain the variation in voting.
+
+The variation for this year can be explained by one simple thing. In 2012, Miguel Cabrera (the MVP) became the first player since 1967 to achieve the triple crown, meaning he led the league in batting average, home runs, and runs batted in. This pushed MVP voters to ignore the statistical achievements of Mike Trout (2nd in voting), even with Trout having nearly 3 more wins above replacement than Cabrera. To simplify this, Trout was the equivalent of a normal MLB all-star better than Cabrera that season.
+
+As for the players in the 3-10 range, that remains a slight stain on the knowledge and ability of baseball MVP voters.
