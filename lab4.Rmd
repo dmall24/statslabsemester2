@@ -1,0 +1,81 @@
+---
+title: "lab4"
+author: "Derek Maldonado"
+date: "3/9/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Q1:
+Consider the following example data for a between-subjects experiment with two groups, A and B,
+
+Use R to conduct a t.test and ANOVA on this data. Then use R to prove that the results of both analyses are the same. For example, prove that the p-values are the same, and prove that the F-value and T-value are related
+
+```{r}
+library(tibble)
+
+data1 <- c(2,4,3,5,4)
+data2 <- c(7,6,5,6,7)
+
+data4q <- tibble(Group = rep(c("A","B"),each = 5),
+                 DV = c(data1,data2))
+
+ano <- aov(formula = DV ~ Group, data = data4q)
+mysum <- summary(ano)
+
+ttes <- t.test(data1,data2, var.equal = TRUE)
+
+(ttes$statistic)^2
+mysum[[1]]$'F value'
+
+ttes$p.value
+mysum[[1]]$'Pr(>F)'
+
+#100% did take a while to remember how to do a t.test correctly
+```
+
+## Q2:
+Look at the lab on ANOVA that I wrote for our undergraduate statistics OER lab manual https://crumplab.github.io/statisticsLab/lab-8-one-way-anova.html. That lab shows an example of obtaining data from a published paper in psych science where a one-factor ANOVA was used as a part of the analysis. Load the data, conduct the ANOVA, report a ggplot of the means, and use papaja to help you write a short results section reporting the ANOVA result.
+
+```{r}
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(data.table)
+library(papaja)
+tetris <- read_csv("tetris.csv")
+
+tetris$Condition <- as.factor(tetris$Condition)
+levels(tetris$Condition) <- c("Control",
+                              "Reactivation+tetris",
+                              "tetrisonly",
+                              "Reactivation_only")
+
+plottin <- tetris%>%
+  group_by(Condition) %>%
+  summarise(means = mean(Days_One_to_Seven_Number_of_Intrusions),
+            SE = sd(Days_One_to_Seven_Number_of_Intrusions)/sqrt(length(Days_One_to_Seven_Number_of_Intrusions)))
+
+ggplot(plottin, aes(x=Condition, y=means))+ 
+  geom_bar(stat="identity", aes(fill=Condition))+
+  geom_errorbar(aes(ymin=means-SE,               
+                    ymax=means+SE), width=.1) +
+  geom_point(data=tetris, aes(x=Condition, y=Days_One_to_Seven_Number_of_Intrusions), alpha=.5)+
+  geom_point(alpha=.25)+
+  ylab("Intrusive Memories (Mean for Week)")
+
+
+
+q2data <- aov(Days_One_to_Seven_Number_of_Intrusions ~ Condition, tetris)
+summary(q2data)
+
+apa_table(apa_print(q2data)$table)
+
+#75% didn't really understand how to do the fancy write up at the end, also completely forgot how to inline r code in my writing
+
+```
+
+We developed a one-factor between-subjects ANOVA to examine the mean intrusive memories for the week from each participant. We found an effect of intervention type, `r apa_print(q2data)$full_result$Condition`.
