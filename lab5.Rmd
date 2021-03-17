@@ -1,0 +1,90 @@
+---
+title: "lab5"
+author: "Derek Maldonado"
+date: "3/16/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 1
+Consider a design with 3 groups, and 10 people per group. Assume that the dependent variable is assumed to be normally distributed, and use unit normal distributions with mean = 0, and sd = 1 in your simulations
+
+Create simulated data for the above design that could be produced by the null hypothesis, and that results in a F value that is smaller than the critical value for F in this design (assume alpha = .05). Report the ANOVA, and show a ggplot of the means in the simulated data. Furthermore, display the individual data points on top of the means. Would you reject the null hypothesis in this situation, and would you be incorrect or correct in rejecting the null?
+
+
+```{r}
+library(tibble)
+library(ggplot2)
+
+levels <- 3
+numba <- 10
+
+
+critF <- qf(0.95,2,27)
+
+saveF <- length(3000)
+for(i in 1:3000){
+     dataq1 <- tibble(subjects = 1:(levels*numba),
+                IV = as.factor(rep(1:levels, each = numba)),
+                DV = rnorm(levels* numba, 0, 1)
+               )
+     ano <- aov(DV ~ IV, data=dataq1)
+     simF <- summary(ano)[[1]]$'F value'
+     
+     if(simF < critF) break
+     saveF[i] <- simF
+}
+
+summary(ano)
+
+ggplot(dataq1, aes(x=IV, y=DV))+
+        geom_bar(stat = "summary", fun = "mean")+
+        geom_point()
+
+# 25% didn't really understand the q until I watched the video
+```
+I would not reject the null hypothesis in this situation, and I would be correct in not rejecting it, since our F value is well below the critical value, and that is expected from a normal distribution.
+
+## Question 2
+
+Create simulated data for the above design that could be produced by the null hypothesis, and that results in a F value that is larger than the critical value for F in this design (assume alpha = .05). Report the ANOVA, and show a ggplot of the means in the simulated data. Furthermore, display the individual data points on top of the means. Would you reject the null hypothesis in this situation, and would you be incorrect or correct in rejecting the null?
+
+
+```{r}
+library(tibble)
+library(ggplot2)
+
+levels <- 3
+numba <- 10
+
+
+critF <- qf(0.95,2,27)
+
+saveF <- length(30000)
+for(i in 1:30000){
+     dataq1 <- tibble(subjects = 1:(levels*numba),
+                IV = as.factor(rep(1:levels, each = numba)),
+                DV = rnorm(levels* numba, 0, 1)
+               )
+     ano <- aov(DV ~ IV, data=dataq1)
+     simF <- summary(ano)[[1]]$'F value'
+     
+     if(simF > critF) break
+}
+
+i
+summary(ano)
+
+ggplot(dataq1, aes(x=IV, y=DV))+
+        geom_bar(stat = "summary", fun = "mean")+
+        geom_point()
+
+# 90% made sense this time around
+```
+With the presented data, I might end up rejecting the null but that would be incorrect because this clearly comes from chance
+
+
+I did not attempt question 3 because I have an big meeting with professor Shane thursday and am spending most of my time working on that this week.
