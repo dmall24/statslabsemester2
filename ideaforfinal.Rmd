@@ -12,11 +12,17 @@ knitr::opts_chunk$set(echo = TRUE)
 ## idea for final project 
 a multiple variable analysis of what factors most in the NBA MVP race over the last 10 years.
 4 variables: Points per game, team record (w-l %), player defensive rating or defensive vorp, average +/- (BOX +/-) or assists+rebounds per game or assist to turnover ratio.
-some of these things are in fact interconnected but using our brains, we can separate them and see which ones are more connected to where a player lands in MVP voting.
+some of these things are in fact interconnected but using our brains, we can separate them and see which ones are more connected to where a player lands in MVP voting. 
 
 
 ```{r}
-
+#looptest
+list <- c()
+# Create a for statement to populate the list
+for (i in seq(1, 4, by=1)) {
+  list[[i]] <- i*i
+}
+print(list)
 
 
 ```

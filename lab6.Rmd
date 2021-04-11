@@ -1,0 +1,79 @@
+---
+title: "lab6"
+author: "Derek Maldonado"
+date: "4/11/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 1
+Section 12.3.3 from your textbook refers to: The problem with replications of a meaningless experiment: ‘alpha and the captain’s age.’ The issue here is that if you run an ineffectual experiment enough times you can always find a significant result by chance. The textbook mentions that if you repeat an experiment 20 times, you are guaranteed to find a significant result with .64 probability, and the probability is .92 if you repeat the experiment 50 times
+
+```{r}
+# a) use rbinom() to show I can reproduce both probabilities
+
+p1 <- replicate(1000, sum(rbinom(20, 1, 0.05)))
+
+length(p1[p1 > 0])/1000
+#very close to 0.64
+
+p2 <- replicate(1000, sum(rbinom(50,1,0.05)))
+
+length(p2[p2 > 0])/1000
+#very close to 0.92
+
+# b) if conducted 20 times with 4 groups and the experimenter would accept a sig result from any contrast, what would be probability of finding a sig result here?
+
+b1 <- replicate(1000, sum(rbinom(20,3,0.05)))
+
+length(b1[b1 > 0])/1000
+
+#50% did part a alone, didn't understand part b that much
+```
+
+## Question 2
+Consider that a researcher publishes a study showing a significant effect, p <. 05; but, in reality the researcher makes a type I error, and the manipulation did not cause any difference. If many other researchers replicated the study, what kind of p-values would they find? Use R to create a sampling distribution of p-values that would be expected in this situation. What shape does this distribution have?
+
+```{r}
+library(tibble)
+library(ggplot2)
+
+pval <- c()
+for(i in 1:1000){
+  d <- rnorm(100, 0, 1)
+  e <- rnorm(100, 0 ,1)
+  dv <- c(d,e)
+
+  iv <- rep(1:2, 100)
+  exp <- tibble(iv,dv)
+
+  pval[i] <- t.test(dv~iv, var.equal=TRUE, data = exp)$p.value
+}
+
+hist(pval)
+length(pval[pval < 0.05])/1000
+#looks real level from here. 50% had the idea, but thought I was going to need to ggplot it and messed up that part
+
+```
+
+## Question 3
+Now assume that the published result reflects a true effect. Specifically, let’s imagine the study had two groups (between-subjects), with 20 subjects in each group. Assume that scores for subjects are all sampled from a normal distribution, and that group A has larger mean than group B by .5 standard deviations (e.g., Cohen’s d = .5). If many other researchers replicated the study, what kind of p-values would they find? Use R to create a sampling distribution of p-values that would be expected in this situation. What shape does this distribution have?
+
+```{r}
+f <- rnorm(20, 0, 1)
+g <- rnorm(20, 0.5, 1)
+dv <- c(f,g)
+iv <- iv <- rep(1:2, each=20)
+ex2 <- tibble(iv,dv)
+
+#pvals <- replicate(1000,t.test(f,g, var.equal = TRUE)$p.value)
+pvals <- replicate(1000, t.test(rnorm(20,0.5,1),rnorm(20,0,1),var.equal = TRUE)$p.value)
+
+hist(pvals)
+
+# 20% tried the way that is commented out, but couldn't get it to work at all, just give big chunk in the histogram
+```
+
