@@ -1,0 +1,118 @@
+---
+title: "lab8"
+author: "Derek Maldonado"
+date: "5/2/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 1
+
+Consider a 2x2 design. Assume the DV is measured from a normal distribution with mean 0, and standard deviation 1. Assume that the main effect of A causes a total shift of .5 standard deviations of the mean between the levels. Assume that level 1 of B is a control, where you expect to measure the standard effect of A. Assume that level 2 of B is an experimental factor intended to reduce the effect of A by .25 standard deviations
+
+create a ggplot2 figure that depicts the expected results from this design
+
+
+```{r}
+library(tibble)
+library(ggplot2)
+
+A <- c(0,0.5)
+B <- c(0,0)
+AB <- c(0,0,0,0.25)
+gmean <- 0
+
+ansdata <- tibble()
+for(i in 1:length(A)){
+  for(j in 1:length(B)){
+    IVA <- i
+    IVB <- j
+    DV <- gmean+A[i]+B[j]+AB[(i-1)*length(B)+j]
+    scoregm <- gmean
+    scoreA <- A[i]
+    scoreB <- B[j]
+    scoreAB <- AB[(i-1)*length(B)+j]
+    row_entry <- tibble(IVA,IVB,DV,scoregm,scoreA,scoreB,scoreAB)
+    ansdata <- rbind(ansdata,row_entry)
+  }
+}
+
+knitr::kable(ansdata)
+
+liner <- ggplot(ansdata,
+                aes(y=DV,
+                    x=IVA,
+                    linetype=as.factor(IVB)))+
+  geom_line()+
+  geom_point()
+
+liner
+
+```
+
+How many subjects are needed to detect the main effect of A with power = .8?
+
+```{r}
+library(tibble)
+library(ggplot2)
+
+N <- 55
+
+Ap <- c()
+Bp <- c()
+ABp <- c()
+
+for(i in 1:1000){
+  IVA <- rep(rep(c("1","2"), each=2),N)
+  IVB <- rep(rep(c("1","2"), 2),N)
+  DV <- c(replicate(N,c(rnorm(1,0,1),
+                        rnorm(1,0,1),
+                        rnorm(1,.5,1),
+                        rnorm(1,.25,1) 
+          )))
+  sim_df <- data.frame(IVA,IVB,DV)
+
+  aov_results <- summary(aov(DV~IVA*IVB, sim_df))
+  Ap[i]<-aov_results[[1]]$`Pr(>F)`[1]
+  Bp[i]<-aov_results[[1]]$`Pr(>F)`[2]
+  ABp[i]<-aov_results[[1]]$`Pr(>F)`[3]
+}
+
+length(Ap[Ap<0.05])/1000
+#length(Bp[Bp<0.05])/1000
+#length(ABp[ABp<0.05])/1000
+
+```
+Need 56 particpants for 0.8 power on main effect of A
+
+
+
+How many subjects are needed to detect the interaction effect with power = .8?
+```{r}
+N <- 500
+
+
+ABp <- c()
+
+for(i in 1:1000){
+  IVA <- rep(rep(c("1","2"), each=2),N)
+  IVB <- rep(rep(c("1","2"), 2),N)
+  DV <- c(replicate(N,c(rnorm(1,0,1),
+                        rnorm(1,0,1),
+                        rnorm(1,.5,1),
+                        rnorm(1,.25,1) 
+          )))
+  sim_df <- data.frame(IVA,IVB,DV)
+
+  aov_results <- summary(aov(DV~IVA*IVB, sim_df))
+  ABp[i]<-aov_results[[1]]$`Pr(>F)`[3]
+}
+
+
+length(ABp[ABp<0.05])/1000
+
+```
+Will need about 500 participants to obtain a power of 0.8
