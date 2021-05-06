@@ -51,6 +51,7 @@ liner <- ggplot(ansdata,
 
 liner
 
+#33% forgot we were doing contrasts and was creating my a and b incorrectly
 ```
 
 How many subjects are needed to detect the main effect of A with power = .8?
@@ -85,6 +86,7 @@ length(Ap[Ap<0.05])/1000
 #length(Bp[Bp<0.05])/1000
 #length(ABp[ABp<0.05])/1000
 
+#50%
 ```
 Need 56 particpants for 0.8 power on main effect of A
 
@@ -114,5 +116,6 @@ for(i in 1:1000){
 
 length(ABp[ABp<0.05])/1000
 
+#100%
 ```
 Will need about 500 participants to obtain a power of 0.8
