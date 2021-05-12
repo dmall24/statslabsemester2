@@ -1,0 +1,166 @@
+---
+title: "lab9"
+author: "Derek Maldonado"
+date: "5/10/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
+## Question 1
+Create an R script that can generate simulated data for the following repeated measures design
+
+A. The dependent variable is assumed to come from a normal distribution with mean = 0 and standard deviation = 1.
+
+B. There is one repeated measures factor with 5 levels (Down1, Down2, Control, Up1, Up2). The control group is assumed to have no effect. The Down1 and Down2 levels shift the mean down by 1 and 2 standard deviations, respectively. The Up1 and Up2 levels shift the mean up by 1 and 2 standard deviations, respectively.
+
+C. There are 6 subjects in the experiment, and they are each measured once in each condition. The 6 subjects are assumed to be different from one another (e.g., they will have different baseline means in the control condition), but they will all be influenced by the IV in the exact same way (e.g., no interaction).
+
+
+
+```{r}
+library(tibble)
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+
+data <- tibble(
+  subjects = rep(1:6, each = 5),
+  IV = rep(c("down2", "down1", "control", "up1", "up2"),6),
+  DV = rnorm(6*5,c(-2,-1,0,1,2),1)
+) %>%
+  mutate(DV = DV+rep(rnorm(6,0,1), each=5))
+
+data$IV <- factor(data$IV, levels = c("down2", "down1", "control", "up1", "up2"))
+data$subjects <- as.factor(data$subjects)
+
+ggplot(data, aes(x=IV, y=DV, group =subjects,
+                 color= subjects))+
+  geom_point()+
+  geom_line()
+
+
+
+#pretty much 0%, I thought the 3 parts were 3 different questions and got confused
+```
+
+## Question 2
+
+Run a simulation to determine the proportion of experiments that would return a significant result for the above design. Assume that the effect of the levels of the IV are increments of .1 of a standard deviation, rather than increments of 1 as in the above design.
+
+
+
+```{r}
+
+pvalue <- c()
+for(i in 1:1000){
+
+data <- tibble(
+  subjects = rep(1:6, each = 5),
+  IV = rep(c("down2", "down1", "control", "up1", "up2"),6),
+  DV = rnorm(6*5,c(-.2,-.1,0,.1,.2),1)
+) %>%
+  mutate(DV = DV+rep(rnorm(6,0,1), each=5))
+
+data$IV <- factor(data$IV, levels = c("down2", "down1", "control", "up1", "up2"))
+data$subjects <- as.factor(data$subjects)
+
+ans <- summary(aov(DV~ IV + Error(subjects), data))
+pvalue[i] <- ans[2]$'Error: Within'[[1]]$'Pr(>F)'
+
+}
+
+length(pvalue[pvalue < 0.05])/1000
+
+
+#25% understood doing the ANOVA part, the error within portion did not come up when I was doing the filtering
+```
+
+## Question 3
+Demonstrate that the Godden and Baddeley example data from the textbook (19.5), which used a 2x2 repeated measures design, can be be analyzed with one-sample t-tests to return the same results. Specifically, show the one-sample t-tests for each main effect and the interaction
+
+
+
+```{r}
+godden_baddeley <- tribble(~Subjects,~LearningPlace,~TestingPlace,~Recall,
+        "s1","On Land","On Land",34,
+        "s2","On Land","On Land",37,
+        "s3","On Land","On Land",27,
+        "s4","On Land","On Land",43,
+        "s5","On Land","On Land",44,
+        "s1","On Land","Under Sea",18,
+        "s2","On Land","Under Sea",21,
+        "s3","On Land","Under Sea",25,
+        "s4","On Land","Under Sea",37,
+        "s5","On Land","Under Sea",34,
+        "s1","Under Sea","On Land",14,
+        "s2","Under Sea","On Land",21,
+        "s3","Under Sea","On Land",31,
+        "s4","Under Sea","On Land",27,
+        "s5","Under Sea","On Land",32,
+        "s1","Under Sea","Under Sea",22,
+        "s2","Under Sea","Under Sea",25,
+        "s3","Under Sea","Under Sea",33,
+        "s4","Under Sea","Under Sea",33,
+        "s5","Under Sea","Under Sea",42
+        )
+
+
+godden_baddeley <- godden_baddeley %>%
+  mutate(Subjects = as.factor(Subjects),
+         LearningPlace = as.factor(LearningPlace),
+         TestingPlace = as.factor(TestingPlace))
+
+
+aov_out <- aov(Recall ~ LearningPlace*TestingPlace + Error(Subjects/(LearningPlace*TestingPlace)), godden_baddeley)
+
+
+summary(aov_out)
+
+ggplot(godden_baddeley, aes(x=TestingPlace,
+                            y=Recall,
+                            shape=LearningPlace,
+                            group=LearningPlace))+
+  geom_point(stat="summary",fun="mean")+
+  geom_line(stat="summary",fun="mean")+
+  theme_classic(base_size=12)
+
+
+
+## t test time
+
+dameans <-godden_baddeley %>%
+  group_by(Subjects,LearningPlace) %>%
+  summarize(means = mean(Recall))
+
+t.test(means ~ LearningPlace, paired = TRUE, data=dameans)
+
+
+landland <- godden_baddeley %>%
+  filter(LearningPlace == "On Land",
+         TestingPlace == "On Land") %>%
+  pull(Recall)
+
+landsea <- godden_baddeley %>%
+  filter(LearningPlace == "On Land",
+         TestingPlace == "Under Sea") %>%
+  pull(Recall)
+
+sealand <- godden_baddeley %>%
+  filter(LearningPlace == "Under Sea",
+         TestingPlace == "On Land") %>%
+  pull(Recall)
+
+seasea <- godden_baddeley %>%
+  filter(LearningPlace == "Under Sea",
+         TestingPlace == "Under Sea") %>%
+  pull(Recall)
+
+t.test((landland - landsea) - (sealand - seasea), mu=0)
+
+#25% been a while since a t.test was done
+
+```
