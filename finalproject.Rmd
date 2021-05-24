@@ -1,0 +1,150 @@
+---
+title: "FinalProject"
+author: "Derek Maldonado"
+date: "5/23/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Concept
+## Multiple Regression
+Multiple regression is useful in examining a single dependent variable that has multiple predictor variables. It can be expected that each of the predictors will play a part in explaining the total variance of the dependent variables. We can explore this by attempting to explain the variance behind a randomly generated data set using 3 randomly created predictive independent variables. To accomplish this, we will use the 
+
+
+```{r}
+#lets set up our libraries to begin
+library(tibble)
+library(ggplot2)
+library(dplyr)
+
+#lets build a random data set of a dependent variable
+DV <- rbinom(20,10,0.5)
+
+#Now lets create a bunch of fake predictor variables to examine it
+#the first will be which group the subject's score comes from
+Group <- rep(c(0,1), each=10)
+#the second will be whether this was the subjects first or second trial
+Trial <- rep(c(0,1), 10)
+
+#Now we are going to put these variables together in an easy to read table
+dataset <- tibble(Group, Trial, DV)
+dataset
+
+#Now we begin the analysis by examining the linear model, which the summary will show that there presented r^2 value of 0.1795 means there is a negligible amount of correlaion to be found in this dataset
+lmofdV <- summary(lm(DV~Group*Trial, data = dataset))
+lmofdV
+
+
+#we then examine each of the factors individually
+lm.group <- lm(DV~Group, data = dataset)
+residuals(lm.group)
+lm.trial <- lm(DV~Trial, data = dataset)
+residuals(lm.trial)
+lm.gtot <- lm(Group~Trial, data = dataset)
+residuals(lm.gtot)
+lm.ttog <- lm(Trial~Group, data = dataset)
+residuals(lm.ttog)
+
+#the values below represent the unique r^2 value one input factor has on the DV we generated.
+groupind <- cor(residuals(lm.gtot),dataset$DV)
+groupind^2
+trialind <- cor(residuals(lm.ttog),dataset$DV)
+trialind^2
+
+#the value below is the shared variance between the two variables. It is found by taking the total r^2 we found in the analysis and subtracting the individual values gathered above
+
+lmofdV$r.squared - groupind^2 - trialind^2
+```
+We can see that in our example consisting of randomly generated numbers are in no way capable of being predicted by the independent variables we used. With that, we will now examine a dataset based on real life historical data that is capable of showing the sources of variance and how they affect the dependent variable.
+
+
+
+# Practical
+## The determining factors in MVP voting in the NBA
+In this example we will use the conceptual idea behind finding the variances behind multiple predictor variables to examine a real world example. This example will consist of finding the individual area that makes the biggest impact when deciding who wins the National Basketball Association's (NBA) Most Valuable Player (MVP), the award voted on by the nations basketball writers and presented to who they believe to be the best player of the past year.
+
+We will be examining the 2010-2011 NBA season in which Derrick Rose won the MVP award, but many believe there were more deserving players. We will look at four separate factors in an attempt to find the reasoning behind the basketball writers votes between the top six vote getters during that NBA season. Those players can be found here: https://www.sbnation.com/nba/2011/5/3/2152070/derrick-rose-2011-mvp-award-vote
+
+Our dependent variable will be the amount of total points each of the top players scored. MVP voting is based off a tiered system. A 1st place vote carries 10 points, 2nd place vote carries 7 points; 3rd place vote is worth 5 points; a 4th place vote is worth 3 points and a 5th place vote is worth 1 point.
+
+The four predictive factors will be team records, the player's average points per game, the players box +/-, and the player's defensive rating. Each of these will be explained below.
+
+Team Record: the win-loss percentage of the team the vote-getting player was on during the season.
+Average PPG: the average amount of points the player scored in each game played. Points are the most important factor in basketball games in that they decide which teams win and lose. We expect this to weigh the heaviest when deciding the MVP.
+box +/-: a box score (single-game) estimate of the points a player contributed over the those of an average NBA player. The statistic behind what constitutes an average NBA player can be found at this link: https://www.basketball-reference.com/about/bpm2.html
+Defensive rating: A statistical look at the amount of points a player is expected to allow the opponent to score in 100 chances. A lower defensive rating is better so to assist with this analysis, we will invert the values to create an increasing counting measure. This is based on an analysis found at this website: https://www.basketball-reference.com/about/ratings.html
+
+
+All data can be found in the sportstats.csv document
+
+```{r}
+library(readr)
+#first we will set our dependent variable by listing the top six players and their total number of voting points. We are pulling this data from the sportstats.csv document using the read_csv function
+sportstats <- read_csv("sportstats.csv")
+player_name <- sportstats$player
+votes <- sportstats$`voting points`
+
+#we will then call our four major variables, pulling from the same csv file for ease of use
+teamrecord <- sportstats$record
+ppg <- sportstats$ppg
+boxplusminus <- sportstats$boxplus
+defenserating <- sportstats$defrating
+
+#to give a simple visualization, we have created a table that shows our data
+databreakdown <- tibble(player=player_name,
+                        y=votes,
+                   a=teamrecord, 
+                   b=ppg,
+                   c=boxplusminus,
+                   d=defenserating)
+databreakdown
+
+#we are creating a second table to remove the player names and leave us with a table filled with only the values needed to complete the multivariate correlation analysis.
+alldata <- tibble(y=votes,
+                   a=teamrecord, 
+                   b=ppg,
+                   c=boxplusminus,
+                   d=defenserating)
+
+#we will then run the analysis using the lm function and print the summary of the analysis
+votingdata <- summary(lm(y~a+b+c+d, data=alldata))
+votingdata
+#as we can see in the summary above, we are presented with a R^2 value of 0.999 (nearly 1). This value shows that virtually all of our predictive variables combined can and do explain how the voting totals were acquired. We will next examine the correlation between all of these variables and our voting totals.
+
+cor(alldata)^2
+
+#Let's look at the first column above (y). By looking at this column, we are able to see the correlation values for each of our predictive variables. Doing the quick math shows that separately these variables equal 70% of the explained variation for the voting totals. More importantly, we can now visualize the impact each of these variables have on the voting totals.
+
+
+```
+After completing a correlational analysis of the presented data, we can come to two conclusions.
+The first is that 70% of the reasoning behind the number of votes each player got can be explained by just looking at each of the four factors we examined. The other 30% of the reasoning is unexplained by looking at these individual factors but could possibly be found by interactions between the factors themselves.
+The second conclusion is that we can now rank the four variables based on their perceived impact on the number of votes. The ranking would look like this:
+
+1)team record
+
+2)box +/-
+
+3)defensive rating
+
+4)points per game
+
+As we can see, this goes against the hypothesis we made prior to analyzing the data which was that the average amount of points per game would be the biggest factor.
+Now that we have a breakdown of the data, we can see where the controversy of this season came from. The biggest factor in the acquired votes had nothing to do with individual talent but instead was how based on how well the team did.
+
+
+## Generalization Assignment
+
+Let us build on the work done in the previous example. In 2016, Stephen Curry became the first player to be unanimously voted the NBA MVP, by acquiring every first place vote in all 131 ballots (https://pr.nba.com/stephen-curry-2015-16-kia-nba-mvp-award-warriors/). 
+
+Question: Use the data found on the basketball reference website (https://www.basketball-reference.com/leagues/NBA_2016_per_game.html) and choose three factors to analyze and compare using a semi-partial correlation for each of the top 8 vote-getters from the 2015-2016 NBA season. Compare each of the three factors and their unique and shared parts to find some explaination for why Stephen Curry was voted the MVP of the season. Use the total r^2 as well as the individual and shared r^2 for the factors chosen to complete the anaysis.
+After completing the analysis, provide in writing what you believe is the reason he was given every first place vote this year and whether you believe he deseved to be voted in such a way.
+
+
+~for matt crump~
+
+My generalization assignment has a very open ended final question on purpose. It serves as an example that statistics can be easily manipulated to have the researcher find whatever explanation they want to find. If this was given to a class, I would expect a plethora of written answers to be provided and an easy discussion to take place after completion.
+

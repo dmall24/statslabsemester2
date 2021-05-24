@@ -13,6 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 a multiple variable analysis of what factors most in the NBA MVP race over the last 10 years.
 4 variables: Points per game, team record (w-l %), player defensive rating or defensive vorp, average +/- (BOX +/-) or assists+rebounds per game or assist to turnover ratio.
 some of these things are in fact interconnected but using our brains, we can separate them and see which ones are more connected to where a player lands in MVP voting. 
+One thing I will have to do is make it so one doesn't outweigh the others by simply being larger. I can do this by standardizing the variables
 
 
 ```{r}
@@ -26,4 +27,10 @@ print(list)
 
 
 ```
+
+
+create a bibloigraphy for my just need to add bibliography section to top between lines and write where bib file is located.can create my own citation keys to simplify everything, the derek way.
+can also add an apa.csl file, must find first and add as a csl file to top section.
+can find here https://github.com/citation-style-language/styles
+add better bibtex add-on to zotero and find it in preferences section
 
